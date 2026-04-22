@@ -1,0 +1,273 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "가상환경 구축 및 디렉토리 구조 생성",
+        "description": "프로젝트를 위한 가상환경을 생성하고 PRD에 명시된 백엔드 및 프론트엔드 폴더 구조를 구축합니다.",
+        "details": "python -m venv .venv 명령어로 가상환경을 생성하고, backend/(models, prompts, routers, services) 및 frontend/(css, js) 디렉토리를 생성합니다.",
+        "testStrategy": "가상환경 활성화 여부를 확인하고, 각 폴더가 의도한 구조대로 생성되었는지 파일 탐색기에서 확인합니다.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "2",
+        "title": "환경 변수 및 보안 설정 (.env, .gitignore)",
+        "description": "Upstage API 키 관리를 위한 환경 변수 파일과 Git 제외 목록을 설정합니다.",
+        "details": ".gitignore 파일에 .env, .venv, __pycache__/를 추가합니다. backend/.env 파일에 UPSTAGE_API_KEY를 정의하고 .env.example을 생성하여 가이드를 제공합니다.",
+        "testStrategy": "git status 명령어를 통해 .env 파일이 스테이징 영역에 포함되지 않는지 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "3",
+        "title": "백엔드 의존성 패키지 정의 및 설치",
+        "description": "FastAPI, LangChain 등 프로젝트에 필요한 Python 라이브러리를 설치합니다.",
+        "details": "backend/requirements.txt에 fastapi, uvicorn, langchain, langchain-upstage, python-dotenv, pydantic을 명시하고 pip install -r requirements.txt를 실행합니다.",
+        "testStrategy": "pip list 명령어로 설치된 패키지 목록을 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "4",
+        "title": "데이터 모델 정의 (schemas.py)",
+        "description": "Pydantic을 사용하여 API 요청 및 응답 데이터 형식을 정의합니다.",
+        "details": "ConvertRequest(text, target_audience)와 ConvertResponse(converted_text, target_audience, original_text) 클래스를 backend/models/schemas.py에 구현합니다.",
+        "testStrategy": "간단한 스크립트로 ConvertRequest 객체를 생성하여 데이터 검증이 작동하는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-04-22T08:40:23.875Z"
+      },
+      {
+        "id": "5",
+        "title": "대상별 프롬프트 템플릿 구현 (templates.py)",
+        "description": "상사, 동료, 고객, 팀원 등 수신 대상별 시스템 프롬프트를 작성합니다.",
+        "details": "backend/prompts/templates.py에 PROMPTS 딕셔너리를 생성하고 각 키(boss, colleague, client, team)에 해당하는 전문적인 지시문을 작성합니다.",
+        "testStrategy": "단위 테스트나 출력문을 통해 각 키에 대해 올바른 프롬프트 문자열이 반환되는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "LLM 변환 서비스 로직 구현 (tone_converter.py)",
+        "description": "LangChain과 Upstage Solar-Pro2를 연동하여 말투 변환 핵심 기능을 구현합니다.",
+        "details": "ChatUpstage 클래스를 초기화하고 ChatPromptTemplate을 사용하여 사용자의 텍스트와 선택된 프롬프트를 조합해 LLM을 호출하는 로직을 backend/services/tone_converter.py에 작성합니다.",
+        "testStrategy": "별도의 테스트 스크립트로 mock 텍스트를 전달하여 LLM으로부터 변환된 응답이 오는지 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "2",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Upstage API 환경 변수 로드 및 ChatUpstage 초기화",
+            "description": "python-dotenv를 사용하여 UPSTAGE_API_KEY를 로드하고, langchain-upstage 패키지를 통해 ChatUpstage 객체를 생성합니다.",
+            "dependencies": [],
+            "details": "backend/services/tone_converter.py 파일 상단에서 dotenv를 로드하고, model='solar-pro' 인자를 사용하여 ChatUpstage 인스턴스를 생성하는 로직을 작성합니다.",
+            "status": "pending",
+            "testStrategy": "ChatUpstage 인스턴스가 성공적으로 생성되고 API 키가 올바르게 주입되었는지 print 문으로 확인합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Target Audience 기반 시스템 프롬프트 선택 로직 구현",
+            "description": "사용자가 선택한 target_audience 값에 따라 backend/prompts/system_prompts.py에서 정의된 프롬프트를 매핑합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "입력값(예: 'formal', 'friendly')에 따라 적절한 시스템 프롬프트 문자열을 반환하는 get_system_prompt 유틸리티 함수를 작성합니다.",
+            "status": "pending",
+            "testStrategy": "각 audience 타입에 대해 예상되는 프롬프트 문자열이 올바르게 반환되는지 단위 테스트를 수행합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "ChatPromptTemplate 및 LangChain Chain 구성",
+            "description": "ChatPromptTemplate.from_messages를 사용하여 시스템 메시지와 사용자 메시지를 구조화하고 LLM과 체인을 구성합니다.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "SystemMessage와 HumanMessage의 템플릿을 정의하고, LCEL(LangChain Expression Language)을 사용하여 prompt | llm 구조의 체인을 생성합니다.",
+            "status": "pending",
+            "testStrategy": "체인 객체의 invoke 메서드에 테스트 데이터를 전달하여 템플릿이 올바르게 채워지는지 확인합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "비동기 말투 변환 핵심 서비스 메서드 구현",
+            "description": "사용자의 텍스트와 변환 대상 정보를 인자로 받아 LLM을 호출하고 변환된 텍스트를 반환하는 비동기 함수를 작성합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "async def convert_tone(text: str, audience: str) 메서드를 구현하고, chain.ainvoke를 호출하여 응답 객체에서 content를 추출해 반환합니다.",
+            "status": "pending",
+            "testStrategy": "비동기 테스트 스크립트를 작성하여 실제 Upstage API 호출 시 변환된 텍스트 응답이 반환되는지 확인합니다.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "LLM 호출 예외 처리 및 로깅 추가",
+            "description": "API 호출 과정에서 발생할 수 있는 타임아웃, 네트워크 오류 및 API 키 오류를 처리하는 로직을 추가합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "try-except 구문을 사용하여 Upstage API 에러(예: HTTPError)를 포착하고, 로깅 모듈을 사용하여 오류 정보를 기록하며 사용자에게 적절한 예외 메시지를 전달합니다.",
+            "status": "pending",
+            "testStrategy": "잘못된 API 키나 빈 텍스트 입력을 통해 예외가 정상적으로 포착되고 로그에 기록되는지 테스트합니다.",
+            "parentId": "undefined"
+          }
+        ]
+      },
+      {
+        "id": "7",
+        "title": "API 라우터 정의 (convert.py)",
+        "description": "말투 변환 요청을 처리하는 API 엔드포인트를 구현합니다.",
+        "details": "backend/routers/convert.py에 APIRouter를 생성하고 POST /convert 엔드포인트를 작성합니다. 요청을 tone_converter 서비스로 전달하고 결과를 반환합니다.",
+        "testStrategy": "FastAPI 앱에 통합하기 전, 라우터 단위로 로직이 정상적으로 동작하는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "4",
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "메인 서버 설정 및 CORS 구성 (main.py)",
+        "description": "FastAPI 인스턴스를 생성하고 라우터 연결 및 CORS 설정을 완료합니다.",
+        "details": "backend/main.py에서 FastAPI를 초기화하고, CORSMiddleware를 사용하여 모든 origin(*)에서의 요청을 허용합니다. /api/convert 라우터와 /health 헬스체크 엔드포인트를 등록합니다.",
+        "testStrategy": "uvicorn main:app --reload로 서버를 실행하고 /health 경로로 접속하여 JSON 응답을 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "백엔드 API Swagger 테스트",
+        "description": "FastAPI 자동 생성 문서를 통해 실제 API 동작을 최종 확인합니다.",
+        "details": "http://localhost:8000/docs에 접속하여 /api/convert 엔드포인트에 테스트 데이터를 넣어 실제 LLM 변환 결과가 오는지 확인합니다.",
+        "testStrategy": "다양한 target_audience 값(boss, team 등)을 입력하여 각각 다른 어조의 결과가 나오는지 검증합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "프론트엔드 HTML 레이아웃 구축",
+        "description": "사용자 입력을 위한 텍스트 영역, 대상 선택 버튼, 결과 표시 영역을 포함하는 HTML을 작성합니다.",
+        "details": "frontend/index.html에 PRD 6.2 섹션의 구성을 반영합니다. 각 요소에 고유 ID(inputText, outputText, convertBtn 등)를 부여합니다.",
+        "testStrategy": "브라우저에서 index.html을 열어 모든 입력창과 버튼이 의도한 위치에 배치되었는지 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "CSS 스타일링 적용",
+        "description": "Professional & Clean 컨셉에 맞는 UI 디자인을 적용합니다.",
+        "details": "frontend/css/style.css에 Indigo-600 포인트 컬러를 적용하고 버튼 호버 효과, .active 클래스 디자인, 반응형 레이아웃(flex/grid)을 구현합니다.",
+        "testStrategy": "브라우저 개발자 도구를 사용하여 스타일이 정확히 적용되었는지, 모바일 뷰에서도 깨지지 않는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "10"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "프론트엔드 기본 인터랙션 구현 (app.js)",
+        "description": "수신 대상 버튼 선택 및 클립보드 복사 기능을 구현합니다.",
+        "details": "frontend/js/app.js에서 버튼 클릭 시 .active 클래스를 토글하는 로직과 navigator.clipboard.writeText를 이용한 복사 기능을 작성합니다.",
+        "testStrategy": "버튼 클릭 시 색상이 변경되는지 확인하고, 복사 버튼 클릭 후 실제로 텍스트가 복사되는지 테스트합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "10"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "API 연동 및 로딩 상태 처리",
+        "description": "Fetch API를 사용하여 백엔드와 통신하고 로딩 UI를 제어합니다.",
+        "details": "app.js의 convertTone 함수에서 backend /api/convert를 호출합니다. 호출 중 버튼 비활성화 및 '변환 중...' 텍스트를 표시하도록 처리합니다.",
+        "testStrategy": "네트워크 탭을 통해 POST 요청이 올바른 페이로드로 전송되는지, 로딩 중에 버튼이 비활성화되는지 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "8",
+          "12"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "전체 기능 통합 로컬 테스트",
+        "description": "프론트엔드와 백엔드를 모두 실행하여 전체 흐름을 검증합니다.",
+        "details": "원문 입력 -> 대상 선택 -> 변환 버튼 클릭 -> 결과 확인 -> 복사 과정이 오류 없이 동작하는지 확인합니다.",
+        "testStrategy": "실제 업무용 문장을 입력하여 각 대상별로 의도한 말투(격식, 정중, 친절 등)로 변환되는지 최종 확인합니다.",
+        "priority": "high",
+        "dependencies": [
+          "9",
+          "13"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Vercel 및 클라우드 배포",
+        "description": "백엔드(Render/Railway)와 프론트엔드(Vercel)를 실제 서버에 배포합니다.",
+        "details": "백엔드 배포 후 발급된 URL을 app.js의 API_BASE 상수에 반영하고, 백엔드의 CORS allow_origins에 프론트엔드 도메인을 추가하여 재배포합니다.",
+        "testStrategy": "배포된 퍼블릭 URL에 접속하여 실제 서비스가 정상 작동하는지 확인합니다.",
+        "priority": "medium",
+        "dependencies": [
+          "14"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-04-22T08:40:23.876Z",
+      "taskCount": 15,
+      "completedCount": 1,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}
