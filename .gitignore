@@ -1,28 +1,6 @@
-# Environment variables
 .env
-
-# Dependencies
-node_modules/
-venv/
-env/
 .venv/
-
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
-.mypy_cache/
-
-# System files
+*.pyc
 .DS_Store
-Thumbs.db
-
-# IDEs
-.vscode/
-.idea/
-
-# Gemini CLI local state
-.gemini/tmp/
-
-package*.json
+node_modules/
